@@ -576,7 +576,7 @@
             </form>
             
             <div style="text-align: center; margin-top: 20px;">
-                <a href="https://github.com/konbinoxx-cell/福音问答网站/issues/new?template=question.md" 
+                <a href="https://github.com/konbinoxx-cell/gospelfaq/issues/new?template=question.md" 
                    target="_blank" class="github-issue-link">
                     📝 或者直接在GitHub提交问题
                 </a>
@@ -599,7 +599,7 @@
             
             // 设置GitHub Issues链接
             const repoOwner = 'konbinoxx-cell'; // 替换为您的GitHub用户名
-            const repoName = '福音问答网站'; // 替换为您的仓库名
+            const repoName = 'gospelfaq'; // 替换为您的仓库名
             const issueLink = document.querySelector('.github-issue-link');
             issueLink.href = `https://github.com/${repoOwner}/${repoName}/issues/new?template=question.md`;
         });
@@ -707,7 +707,7 @@
         // 创建GitHub Issue
         async function createGitHubIssue(question, category, email, phone) {
             const repoOwner = 'konbinoxx-cell'; // 替换为您的GitHub用户名
-            const repoName = '福音问答网站'; // 替换为您的仓库名
+            const repoName = 'gospelfaq'; // 替换为您的仓库名
             
             const issueData = {
                 title: `[问题] ${question.substring(0, 50)}${question.length > 50 ? '...' : ''}`,
