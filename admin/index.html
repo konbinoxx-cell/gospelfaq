@@ -268,193 +268,282 @@
 
     <script>
         let currentIssues = [];
-        let selectedIssue = null;
+let selectedIssue = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('管理员界面加载完成');
+    loadIssues();
+    loadStats();
+});
+
+// 修复的 loadIssues 函数
+async function loadIssues() {
+    try {
+        console.log('开始加载GitHub Issues...');
         
-        // 初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            loadIssues();
-            loadStats();
-        });
+        const repoOwner = 'kombinoxx-cell';
+        const repoName = 'gospelfaq';
+        const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/issues?state=open&per_page=100`;
         
-        // 加载GitHub Issues
-        async function loadIssues() {
-            try {
-                const repoOwner = 'your-username'; // 替换为您的GitHub用户名
-                const repoName = '福音问答网站'; // 替换为您的仓库名
-                
-                const response = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/issues?state=open&labels=question`);
-                currentIssues = await response.json();
-                
-                displayIssues();
-            } catch (error) {
-                console.error('加载Issues失败:', error);
-                document.getElementById('questionsList').innerHTML = `
-                    <div class="notification error">
-                        加载问题失败：${error.message}<br>
-                        请检查GitHub Token配置和网络连接
-                    </div>
-                `;
-            }
+        console.log('请求URL:', apiUrl);
+        
+        const response = await fetch(apiUrl);
+        console.log('响应状态:', response.status, response.statusText);
+        
+        if (!response.ok) {
+            throw new Error(`GitHub API返回错误: ${response.status} ${response.statusText}`);
         }
         
-        // 显示问题列表
-        function displayIssues() {
-            const questionsList = document.getElementById('questionsList');
+        const data = await response.json();
+        console.log('API返回数据:', data);
+        
+        // 确保 currentIssues 是数组
+        if (Array.isArray(data)) {
+            // 过滤掉pull requests，只保留issues
+            currentIssues = data.filter(issue => !issue.pull_request);
+            console.log('过滤后的问题:', currentIssues);
+        } else {
+            console.warn('API返回的不是数组:', typeof data);
+            currentIssues = [];
+        }
+        
+        displayIssues();
+        
+    } catch (error) {
+        console.error('加载失败:', error);
+        
+        // 显示详细错误信息
+        document.getElementById('questionsList').innerHTML = `
+            <div class="notification error">
+                <strong>加载失败</strong><br>
+                错误: ${error.message}<br>
+                <small>这可能是由于GitHub API限制或网络问题</small>
+                <br><br>
+                <a href="https://github.com/kombinoxx-cell/gospelfaq/issues" 
+                   target="_blank" style="color: var(--brand); text-decoration: underline;">
+                   直接访问GitHub Issues
+                </a>
+            </div>
+        `;
+        
+        // 设置为空数组避免后续错误
+        currentIssues = [];
+    }
+}
+
+// 修复的 displayIssues 函数
+function displayIssues() {
+    const questionsList = document.getElementById('questionsList');
+    
+    console.log('显示问题，currentIssues:', currentIssues);
+    
+    // 确保 currentIssues 是数组
+    if (!Array.isArray(currentIssues)) {
+        console.error('currentIssues 不是数组:', typeof currentIssues);
+        currentIssues = [];
+    }
+    
+    if (currentIssues.length === 0) {
+        questionsList.innerHTML = `
+            <div class="notification">
+                📝 暂无待回答问题
+                <br><br>
+                <a href="https://github.com/kombinoxx-cell/gospelfaq/issues/new" 
+                   target="_blank" style="color: var(--brand);">
+                   创建第一个问题
+                </a>
+            </div>
+        `;
+        return;
+    }
+    
+    // 过滤只显示有question标签的问题
+    const questionIssues = currentIssues.filter(issue => {
+        const hasQuestionLabel = issue.labels && 
+            issue.labels.some(label => label.name.toLowerCase().includes('question'));
+        return hasQuestionLabel;
+    });
+    
+    console.log('过滤后的问题:', questionIssues);
+    
+    if (questionIssues.length === 0) {
+        questionsList.innerHTML = `
+            <div class="notification">
+                ✅ 所有问题都已回答！
+                <br><br>
+                <small>或者问题缺少"question"标签</small>
+            </div>
+        `;
+        return;
+    }
+    
+    // 安全地使用 map
+    try {
+        questionsList.innerHTML = questionIssues.map(issue => {
+            const title = issue.title ? issue.title.replace(/^\[问题\]\s*/, '') : '无标题';
+            const labels = issue.labels ? issue.labels.map(l => l.name).join(', ') : '无标签';
+            const body = issue.body ? 
+                (issue.body.substring(0, 100) + (issue.body.length > 100 ? '...' : '')) : 
+                '无描述';
             
-            if (currentIssues.length === 0) {
-                questionsList.innerHTML = `
-                    <div class="notification">
-                        暂无待回答问题
-                    </div>
-                `;
-                return;
-            }
-            
-            questionsList.innerHTML = currentIssues.map(issue => `
+            return `
                 <div class="question-item ${selectedIssue?.id === issue.id ? 'selected' : ''}" 
                      onclick="selectIssue(${issue.id})">
-                    <strong>${issue.title.replace(/^\[问题\]\s*/, '')}</strong>
+                    <strong>${title}</strong>
                     <div class="question-meta">
                         #${issue.number} • ${new Date(issue.created_at).toLocaleDateString()} • 
-                        分类: ${issue.labels.map(l => l.name).filter(name => name !== 'question').join(', ') || '未分类'}
+                        标签: ${labels}
                     </div>
                     <div style="margin-top: 8px; font-size: 14px; color: var(--muted);">
-                        ${issue.body.substring(0, 100)}${issue.body.length > 100 ? '...' : ''}
+                        ${body}
+                    </div>
+                    <div style="margin-top: 8px;">
+                        <a href="${issue.html_url}" target="_blank" style="color: var(--brand); font-size: 12px;">
+                            📋 在GitHub中查看
+                        </a>
                     </div>
                 </div>
-            `).join('');
-        }
-        
-        // 选择问题
-        function selectIssue(issueId) {
-            selectedIssue = currentIssues.find(issue => issue.id === issueId);
-            displayIssues();
-            
-            // 更新表单
-            document.getElementById('selectedQuestionDisplay').textContent = 
-                selectedIssue.title.replace(/^\[问题\]\s*/, '');
-            
-            // 自动选择分类
-            const category = selectedIssue.labels
-                .map(label => label.name)
-                .find(name => !['question'].includes(name));
-            
-            if (category) {
-                document.getElementById('answerCategory').value = category;
-            }
-            
-            // 启用提交按钮
-            document.getElementById('submitAnswerBtn').disabled = false;
-        }
-        
-        // 提交回答
-        document.getElementById('answerForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            if (!selectedIssue) {
-                showMessage('请先选择一个问题', 'error');
-                return;
-            }
-            
-            const answerText = document.getElementById('answerText').value;
-            const category = document.getElementById('answerCategory').value;
-            
-            if (!answerText.trim()) {
-                showMessage('请输入回答内容', 'error');
-                return;
-            }
-            
-            if (!category) {
-                showMessage('请选择问题分类', 'error');
-                return;
-            }
-            
-            const submitBtn = document.getElementById('submitAnswerBtn');
-            submitBtn.disabled = true;
-            submitBtn.textContent = '提交中...';
-            
-            try {
-                await submitAnswer(selectedIssue, answerText, category);
-                showMessage('回答提交成功！问题已标记为已回答', 'success');
-                
-                // 重置表单
-                document.getElementById('answerText').value = '';
-                selectedIssue = null;
-                document.getElementById('selectedQuestionDisplay').textContent = '请从左侧选择一个问题';
-                submitBtn.textContent = '发布回答';
-                submitBtn.disabled = true;
-                
-                // 重新加载数据
-                loadIssues();
-                loadStats();
-                
-            } catch (error) {
-                showMessage(`提交失败：${error.message}`, 'error');
-                submitBtn.disabled = false;
-                submitBtn.textContent = '发布回答';
-            }
-        });
-        
-        // 提交回答到GitHub
-        async function submitAnswer(issue, answer, category) {
-            const repoOwner = 'your-username'; // 替换为您的GitHub用户名
-            const repoName = '福音问答网站'; // 替换为您的仓库名
-            
-            // 在实际应用中，这里需要GitHub Token认证
-            // 目前我们先模拟成功提交
-            
-            // 添加评论（回答）
-            console.log(`为问题 #${issue.number} 添加回答：`, answer);
-            
-            // 添加answered标签
-            console.log(`为问题 #${issue.number} 添加answered标签`);
-            
-            // 在实际部署中，您需要：
-            // 1. 配置GitHub Token
-            // 2. 使用GitHub REST API添加评论和标签
-            // 3. 关闭Issue
-            
-            // 模拟API调用延迟
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            
-            return { success: true };
-        }
-        
-        // 显示消息
-        function showMessage(message, type) {
-            const messageDiv = document.getElementById('formMessage');
-            messageDiv.innerHTML = `
-                <div class="notification ${type}">
-                    ${message}
-                </div>
             `;
+        }).join('');
+    } catch (mapError) {
+        console.error('渲染问题列表时出错:', mapError);
+        questionsList.innerHTML = `
+            <div class="notification error">
+                渲染问题列表时出错: ${mapError.message}
+            </div>
+        `;
+    }
+}
+
+// 选择问题
+function selectIssue(issueId) {
+    console.log('选择问题:', issueId);
+    
+    if (!Array.isArray(currentIssues)) {
+        console.error('currentIssues 不是数组，无法选择问题');
+        return;
+    }
+    
+    selectedIssue = currentIssues.find(issue => issue.id === issueId);
+    
+    if (!selectedIssue) {
+        console.error('未找到问题:', issueId);
+        return;
+    }
+    
+    displayIssues();
+    
+    // 更新表单显示
+    const questionTitle = selectedIssue.title ? selectedIssue.title.replace(/^\[问题\]\s*/, '') : '无标题';
+    document.getElementById('selectedQuestionDisplay').textContent = questionTitle;
+    
+    // 自动选择分类
+    if (selectedIssue.labels) {
+        const category = selectedIssue.labels
+            .map(label => label.name)
+            .find(name => !['question', 'answered'].includes(name.toLowerCase()));
+        
+        if (category) {
+            document.getElementById('answerCategory').value = category;
+        }
+    }
+    
+    document.getElementById('submitAnswerBtn').disabled = false;
+}
+
+// 提交回答
+document.getElementById('answerForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    if (!selectedIssue) {
+        showMessage('请先选择一个问题', 'error');
+        return;
+    }
+    
+    const answerText = document.getElementById('answerText').value;
+    const category = document.getElementById('answerCategory').value;
+    
+    if (!answerText.trim()) {
+        showMessage('请输入回答内容', 'error');
+        return;
+    }
+    
+    // 重定向到GitHub进行回答
+    const answerUrl = `${selectedIssue.html_url}#issuecomment-new`;
+    window.open(answerUrl, '_blank');
+    
+    showMessage('已打开GitHub页面，请在那里添加回答并标记为"answered"', 'success');
+});
+
+// 加载统计信息
+async function loadStats() {
+    try {
+        // 加载FAQ数据统计
+        const faqResponse = await fetch('../faq-data.json');
+        if (faqResponse.ok) {
+            const faqData = await faqResponse.json();
             
-            setTimeout(() => {
-                messageDiv.innerHTML = '';
-            }, 5000);
+            document.getElementById('totalQuestions').textContent = faqData.length;
+            document.getElementById('answeredQuestions').textContent = 
+                faqData.filter(f => f.status === 'answered').length;
+            
+            const categories = new Set(faqData.map(f => f.category));
+            document.getElementById('categoriesCount').textContent = categories.size;
         }
         
-        // 加载统计信息
-        async function loadStats() {
-            try {
-                // 加载FAQ数据统计
-                const faqResponse = await fetch('../faq-data.json');
-                const faqData = await faqResponse.json();
-                
-                document.getElementById('totalQuestions').textContent = faqData.length;
-                document.getElementById('answeredQuestions').textContent = 
-                    faqData.filter(f => f.status === 'answered').length;
-                
-                const categories = new Set(faqData.map(f => f.category));
-                document.getElementById('categoriesCount').textContent = categories.size;
-                
-                // 加载待回答问题统计
-                document.getElementById('pendingQuestions').textContent = currentIssues.length;
-                
-            } catch (error) {
-                console.error('加载统计信息失败:', error);
-            }
-        }
+        // 待回答问题统计
+        document.getElementById('pendingQuestions').textContent = 
+            Array.isArray(currentIssues) ? currentIssues.length : 0;
+        
+    } catch (error) {
+        console.error('加载统计失败:', error);
+        // 设置默认值
+        document.getElementById('totalQuestions').textContent = '0';
+        document.getElementById('answeredQuestions').textContent = '0';
+        document.getElementById('categoriesCount').textContent = '0';
+        document.getElementById('pendingQuestions').textContent = '0';
+    }
+}
+
+// 显示消息
+function showMessage(message, type) {
+    const messageDiv = document.getElementById('formMessage');
+    messageDiv.innerHTML = `
+        <div class="notification ${type}">
+            ${message}
+        </div>
+    `;
+    
+    setTimeout(() => {
+        messageDiv.innerHTML = '';
+    }, 5000);
+}
+
+// 手动刷新功能
+function refreshIssues() {
+    console.log('手动刷新问题列表');
+    loadIssues();
+    loadStats();
+}
+
+// 添加刷新按钮到页面
+document.addEventListener('DOMContentLoaded', function() {
+    const header = document.querySelector('header');
+    if (header) {
+        const refreshBtn = document.createElement('button');
+        refreshBtn.textContent = '🔄 刷新';
+        refreshBtn.style.background = 'var(--panel)';
+        refreshBtn.style.color = 'var(--text)';
+        refreshBtn.style.border = '1px solid var(--border)';
+        refreshBtn.style.padding = '8px 16px';
+        refreshBtn.style.borderRadius = '6px';
+        refreshBtn.style.cursor = 'pointer';
+        refreshBtn.style.marginLeft = '10px';
+        refreshBtn.onclick = refreshIssues;
+        
+        header.appendChild(refreshBtn);
+    }
+});
     </script>
 </body>
 </html>
