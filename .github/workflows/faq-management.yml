@@ -1,0 +1,42 @@
+name: FAQ Management
+
+on:
+  issues:
+    types: [labeled]
+  issue_comment:
+    types: [created]
+
+jobs:
+  process-answered-question:
+    if: contains(github.event.issue.labels.*.name, 'answered') && github.event.issue.state == 'open'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Process answered question
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # 安装依赖
+          npm install @actions/github @actions/core
+          
+          # 运行处理脚本
+          node .github/scripts/process-answer.js
+          
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add faq-data.json
+          git commit -m "添加已回答问题: ${{ github.event.issue.title }}" || exit 0
+          git push
