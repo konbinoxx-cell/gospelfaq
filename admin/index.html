@@ -281,7 +281,7 @@ async function loadIssues() {
     try {
         console.log('开始加载GitHub Issues...');
         
-        const repoOwner = 'konbinoxx-cell';
+        const repoOwner = 'konbinoxx-cell'; // 正确的用户名
         const repoName = 'gospelfaq';
         const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/issues?state=open&per_page=100`;
         
@@ -299,13 +299,34 @@ async function loadIssues() {
         
         // 确保 currentIssues 是数组
         if (Array.isArray(data)) {
-            // 过滤掉pull requests，只保留issues
             currentIssues = data.filter(issue => !issue.pull_request);
             console.log('过滤后的问题:', currentIssues);
         } else {
-            console.warn('API返回的不是数组:', typeof data);
+            console.warn('API返回的不是数组');
             currentIssues = [];
         }
+        
+        displayIssues();
+        
+    } catch (error) {
+        console.error('加载失败:', error);
+        
+        document.getElementById('questionsList').innerHTML = `
+            <div class="notification error">
+                <strong>加载失败</strong><br>
+                错误: ${error.message}<br>
+                <small>请检查控制台查看详细日志</small>
+                <br><br>
+                <a href="https://github.com/konbinoxx-cell/gospelfaq/issues" 
+                   target="_blank" style="color: var(--brand); text-decoration: underline;">
+                   直接访问GitHub Issues
+                </a>
+            </div>
+        `;
+        
+        currentIssues = [];
+    }
+}
         
         displayIssues();
         
