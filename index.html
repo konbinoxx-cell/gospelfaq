@@ -368,22 +368,6 @@
             border-color: #334155;
         }
 
-        #google_translate_element {
-            display: none !important;
-        }
-
-        .goog-te-banner-frame {
-            display: none !important;
-        }
-
-        .skiptranslate {
-            display: none !important;
-        }
-
-        body {
-            top: 0px !important;
-        }
-
         .loading {
             display: inline-block;
             width: 20px;
@@ -424,6 +408,22 @@
         .no-results-icon {
             font-size: 48px;
             margin-bottom: 15px;
+        }
+
+        .github-issue-link {
+            display: inline-block;
+            background: #24292e;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            margin-top: 10px;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .github-issue-link:hover {
+            background: #2c3136;
         }
 
         @media (max-width: 768px) {
@@ -485,8 +485,6 @@
                 </select>
             </div>
         </div>
-
-        <div id="google_translate_element"></div>
     </header>
 
     <main>
@@ -576,6 +574,13 @@
                     <button type="button" class="cancel-btn" onclick="resetForm()">清空表单</button>
                 </div>
             </form>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="https://github.com/your-username/福音问答网站/issues/new?template=question.md" 
+                   target="_blank" class="github-issue-link">
+                    📝 或者直接在GitHub提交问题
+                </a>
+            </div>
         </div>
     </main>
 
@@ -586,126 +591,46 @@
 
     <script>
         // 常见问题数据
-        const faqData = [
-            {
-                id: 1,
-                question: "什么是福音？",
-                answer: "福音的意思是'好消息'。福音的核心信息是：神爱世人，甚至将祂的独生子赐给我们，叫一切信祂的，不至灭亡，反得永生（约翰福音3:16）。这好消息包括：1) 人因罪与神隔绝；2) 耶稣基督为我们的罪死在十字架上；3) 祂从死里复活，战胜了死亡；4) 凡信靠祂的人都能得救，获得永生。",
-                category: "基本信仰",
-                date: "2024-01-20",
-                status: "answered"
-            },
-            {
-                id: 2,
-                question: "我如何才能得救？",
-                answer: "得救的方法很简单，却需要真诚的心：1) 承认自己是罪人，需要神的救赎；2) 相信耶稣基督是神的儿子，为你的罪死在十字架上，并且复活；3) 悔改你的罪，愿意离弃罪恶；4) 接受耶稣作你个人的救主和生命的主。你可以用祷告向神表达你的信心：'主耶稣，我承认我是个罪人，我相信你为我的罪死在十字架上，求你赦免我的罪，进入我的生命，作我的救主。阿们。'",
-                category: "救恩之道",
-                date: "2024-01-19",
-                status: "answered"
-            },
-            {
-                id: 3,
-                question: "圣经是神的话语吗？可信吗？",
-                answer: "是的，圣经是神的话语。圣经由40多位作者在1500多年间写成，却保持惊人的一致性和连贯性，这证明背后有神的引导。圣经的预言准确应验，考古发现不断印证圣经的真实性。最重要的是，圣经改变了无数人的生命。提摩太后书3:16说：'圣经都是神所默示的，于教训、督责、使人归正、教导人学义都是有益的。'",
-                category: "圣经真理",
-                date: "2024-01-18",
-                status: "answered"
-            },
-            {
-                id: 4,
-                question: "神为什么允许苦难存在？",
-                answer: "这是一个深刻的问题。苦难的存在与人的自由意志有关——神创造人时赋予了选择的自由，而罪恶进入世界是因为人选择背离神。神不是苦难的创造者，但祂允许苦难存在，并能使用苦难来塑造我们的品格，使我们更依靠祂。重要的是，神没有袖手旁观——祂亲自来到世上，在耶稣基督里经历了人间的苦难，并应许将来会除去一切的痛苦和眼泪（启示录21:4）。",
-                category: "疑难解答",
-                date: "2024-01-17",
-                status: "answered"
-            },
-            {
-                id: 5,
-                question: "如何开始祷告？",
-                answer: "祷告就是与神对话。不需要特别的词汇或形式，神看重的是你真诚的心。你可以这样开始：1) 称呼神（如'天父'、'主耶稣'）；2) 赞美和感谢神；3) 承认你的罪，寻求饶恕；4) 为自己和他人的需要祈求；5) 以'奉耶稣的名祷告，阿们'结束。记住，祷告不是对着天花板说话，而是与爱你的天父倾心交谈。开始时可以简短，重要的是保持每天的祷告习惯。",
-                category: "祷告生活",
-                date: "2024-01-16",
-                status: "answered"
-            },
-            {
-                id: 6,
-                question: "耶稣真的从死里复活了吗？",
-                answer: "是的，耶稣的复活是基督教信仰的核心，也有充分的历史证据支持：1) 空坟墓——没有人能解释尸体去了哪里；2) 多次显现——超过500人见证了复活的耶稣（哥林多前书15:6）；3) 门徒的转变——原本害怕躲藏的门徒变得勇敢无畏，甚至为信仰殉道；4) 教会的诞生和发展；5) 历史记载的一致性。如果复活不是真的，基督教在最初就会被驳倒，但事实是它改变了整个世界。",
-                category: "基督生平",
-                date: "2024-01-15",
-                status: "answered"
-            },
-            {
-                id: 7,
-                question: "如何读懂圣经？",
-                answer: "读圣经的几个建议：1) 祷告求圣灵引导；2) 选择合适的译本（如和合本、新译本）；3) 从新约的福音书开始（推荐约翰福音）；4) 每天坚持阅读，哪怕只有15分钟；5) 使用圣经注释或读经指南帮助理解；6) 思想如何应用到生活中；7) 参加查经小组，与其他信徒一起学习。记住，理解圣经是一个渐进的过程，要有耐心。",
-                category: "灵命成长",
-                date: "2024-01-14",
-                status: "answered"
-            },
-            {
-                id: 8,
-                question: "为什么需要去教会？",
-                answer: "教会不是一座建筑，而是信徒的团契。去教会的重要性：1) 敬拜神——与其他信徒一起赞美神；2) 学习真理——通过讲道和查经深入了解神的话；3) 团契交通——互相鼓励、扶持；4) 服事他人——发挥你的恩赐造就他人；5) 领受圣餐——纪念主的救恩；6) 属灵遮盖——在信仰的路上不孤单。希伯来书10:25提醒我们'不可停止聚会'。教会就像一个属灵的大家庭，我们需要彼此。",
-                category: "教会生活",
-                date: "2024-01-13",
-                status: "answered"
-            },
-            {
-                id: 9,
-                question: "什么是三位一体？",
-                answer: "三位一体是基督教的核心教义，指神是一位神，但有三个位格：圣父、圣子、圣灵。这三个位格本质相同、权能相同、荣耀相同，但各有不同的位格和工作。圣父是创造者，圣子是救赎者，圣灵是保惠师。这不是三个神，而是同一位神以三种不同的位格存在。这奥秘超越人的完全理解，但圣经多处启示这一真理（如马太福音28:19）。",
-                category: "基本信仰",
-                date: "2024-01-12",
-                status: "answered"
-            },
-            {
-                id: 10,
-                question: "如何分辨神的旨意？",
-                answer: "分辨神的旨意需要：1) 熟读圣经——神的话语是祂旨意的主要启示；2) 祷告寻求——与神建立亲密关系，求祂显明心意；3) 寻求属灵长辈的建议；4) 注意环境中的印证；5) 内心平安——圣灵会在我们心中引导；6) 顺服已知的旨意——神会向顺服的人显明更多。记住，神的旨意总是与祂的话语一致，并且是为了我们的益处。",
-                category: "灵命成长",
-                date: "2024-01-11",
-                status: "answered"
-            }
-        ];
-
-        let selectedContactOption = 'none';
-
+        let faqData = [];
+        
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', function() {
-            displayFAQs('all');
+            loadFAQData();
             
-            // 添加谷歌翻译脚本
-            const script = document.createElement('script');
-            script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
-            document.head.appendChild(script);
+            // 设置GitHub Issues链接
+            const repoOwner = 'your-username'; // 替换为您的GitHub用户名
+            const repoName = '福音问答网站'; // 替换为您的仓库名
+            const issueLink = document.querySelector('.github-issue-link');
+            issueLink.href = `https://github.com/${repoOwner}/${repoName}/issues/new?template=question.md`;
         });
 
-        // 初始化谷歌翻译
-        function googleTranslateElementInit() {
-            if (typeof google !== 'undefined' && google.translate) {
-                new google.translate.TranslateElement({
-                    pageLanguage: 'zh-CN',
-                    includedLanguages: 'zh-CN,en,es,fr,de,pt,ru,ja,ko,ar,hi,vi',
-                    layout: google.translate.TranslateElement.InlineLayout.SIMPLE
-                }, 'google_translate_element');
+        // 加载FAQ数据
+        async function loadFAQData() {
+            try {
+                const response = await fetch('./faq-data.json');
+                faqData = await response.json();
+                displayFAQs('all');
+            } catch (error) {
+                console.error('加载FAQ数据失败:', error);
+                // 使用默认数据
+                faqData = [
+                    {
+                        id: 1,
+                        question: "什么是福音？",
+                        answer: "福音的意思是'好消息'。福音的核心信息是：神爱世人，甚至将祂的独生子赐给我们，叫一切信祂的，不至灭亡，反得永生（约翰福音3:16）。",
+                        category: "基本信仰",
+                        date: "2024-01-20",
+                        status: "answered"
+                    }
+                ];
+                displayFAQs('all');
             }
         }
 
         // 更改语言
         function changeLanguage(lang) {
-            if (lang === 'zh-CN') {
-                // 刷新页面以重置为中文
-                location.reload();
-            } else {
-                // 使用谷歌翻译
-                if (typeof google !== 'undefined' && google.translate) {
-                    const select = document.querySelector('.goog-te-combo');
-                    if (select) {
-                        select.value = lang;
-                        select.dispatchEvent(new Event('change'));
-                    }
-                }
+            if (lang !== 'zh-CN') {
+                alert('多语言功能需要配置翻译服务。当前仅支持中文。');
             }
         }
 
@@ -758,42 +683,57 @@
             submitText.innerHTML = '<span class="loading"></span>提交中...';
             submitBtn.disabled = true;
             
-            // 模拟提交过程
-            setTimeout(function() {
-                let contactInfo = '';
-                if (selectedContactOption === 'email' && email) {
-                    contactInfo = `邮箱：${email}`;
-                } else if (selectedContactOption === 'phone' && phone) {
-                    contactInfo = `电话：${phone}`;
-                }
-                
-                const adminEmail = 'gospel@example.com';
-                const subject = encodeURIComponent(`新的福音问题：${category}`);
-                const body = encodeURIComponent(
-                    `收到一个新的福音问题：\n\n` +
-                    `问题：${question}\n\n` +
-                    `分类：${category}\n\n` +
-                    `联系方式：${contactInfo || '用户将稍后查看'}\n\n` +
-                    `提交时间：${new Date().toLocaleString()}\n\n` +
-                    `请回复此问题，如果合适，可以考虑添加到常见问题列表中。`
-                );
-                
-                const mailtoLink = `mailto:${adminEmail}?subject=${subject}&body=${body}`;
-                window.open(mailtoLink, '_blank');
-                
-                // 恢复按钮状态
-                submitText.textContent = '提交问题';
-                submitBtn.disabled = false;
-                
-                if (contactInfo) {
-                    alert('感谢您的提问！我们会在24小时内将答案发送到您提供的联系方式。愿神赐福与您！');
-                } else {
-                    alert('感谢您的提问！请在24小时后回来查看您的问题是否已被回答。愿神赐福与您！');
-                }
-                
-                resetForm();
-            }, 1500);
+            // 创建GitHub Issue
+            createGitHubIssue(question, category, email, phone)
+                .then(issueUrl => {
+                    submitText.textContent = '提交问题';
+                    submitBtn.disabled = false;
+                    
+                    if (issueUrl) {
+                        alert(`问题提交成功！您可以在GitHub上跟踪问题状态：${issueUrl}`);
+                    } else {
+                        alert('问题提交成功！我们会尽快回复您。');
+                    }
+                    
+                    resetForm();
+                })
+                .catch(error => {
+                    submitText.textContent = '提交问题';
+                    submitBtn.disabled = false;
+                    alert('提交失败，请稍后重试。错误：' + error.message);
+                });
         });
+
+        // 创建GitHub Issue
+        async function createGitHubIssue(question, category, email, phone) {
+            const repoOwner = 'your-username'; // 替换为您的GitHub用户名
+            const repoName = '福音问答网站'; // 替换为您的仓库名
+            
+            const issueData = {
+                title: `[问题] ${question.substring(0, 50)}${question.length > 50 ? '...' : ''}`,
+                body: `
+**问题：** ${question}
+
+**分类：** ${category}
+
+**联系方式：** ${email || phone || '无'}
+
+**提交时间：** ${new Date().toLocaleString()}
+
+---
+
+*此问题由网站表单自动提交*
+                `.trim(),
+                labels: ['question', category]
+            };
+            
+            // 在实际应用中，这里需要GitHub OAuth认证
+            // 目前我们先重定向到GitHub Issues页面
+            const issueUrl = `https://github.com/${repoOwner}/${repoName}/issues/new?title=${encodeURIComponent(issueData.title)}&body=${encodeURIComponent(issueData.body)}&labels=${encodeURIComponent(issueData.labels.join(','))}`;
+            window.open(issueUrl, '_blank');
+            
+            return issueUrl;
+        }
 
         // 重置表单
         function resetForm() {
@@ -852,6 +792,8 @@
         document.getElementById('categoryFilter').addEventListener('change', function(e) {
             displayFAQs(e.target.value);
         });
+
+        let selectedContactOption = 'none';
     </script>
 </body>
 </html>
