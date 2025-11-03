@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>福音常见问题 | Gospel FAQ</title>
+    <style>
+        :root {
+            --bg: #0b1220;
+            --panel: #0f172a;
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+            --brand: #60a5fa;
+            --border: #1f2937;
+            --success: #4ade80;
+            --warning: #fbbf24;
+            --error: #f87171;
+            --gold: #fbbf24;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.8;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+            transition: opacity 0.3s ease;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .header-content {
+            position: relative;
+        }
+        
+        h1 { 
+            color: var(--gold); 
+            margin-bottom: 15px;
+            display: inline-block;
+            font-size: 2.2em;
+        }
+        
+        .subtitle {
+            color: var(--muted);
+            font-size: 1.1em;
+            margin-top: 10px;
+        }
+        
+        .home-btn {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--panel);
+            color: var(--muted);
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .home-btn:hover {
+            color: var(--text);
+            border-color: var(--brand);
+        }
+        
+        .bible-verse {
+            background: linear-gradient(135deg, rgba(96, 165, 250, 0.1) 0%, rgba(251, 191, 36, 0.1) 100%);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--gold);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            font-style: italic;
+            animation: fadeIn 1s ease;
+        }
+        
+        .bible-verse p {
+            color: var(--text);
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+        
+        .bible-verse cite {
+            color: var(--gold);
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+        
+        .language-section {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .language-selector {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 12px;
+        }
+        
+        .language-icon {
+            font-size: 16px;
+        }
+        
+        .language-selector select {
+            background: var(--panel);
+            color: var(--text);
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            font-size: 14px;
+            outline: none;
+            min-width: 120px;
+        }
+        
+        .language-selector select option {
+            background: var(--panel);
+            color: var(--text);
+            padding: 8px;
+        }
+        
+        .latest-faqs {
+            margin-bottom: 30px;
+        }
+        
+        .faq-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .category-filter {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .category-filter label {
+            color: var(--muted);
+            font-weight: 600;
+        }
+        
+        .category-filter select {
+            background: var(--panel);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            min-width: 180px;
+        }
+        
+        .faq-item {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            position: relative;
+            transition: transform 0.2s, box-shadow 0.2s;
+            animation: slideUp 0.5s ease;
+        }
+        
+        .faq-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(96, 165, 250, 0.1);
+        }
+        
+        .faq-item.answered {
+            border-left: 4px solid var(--success);
+        }
+        
+        .faq-item h3 {
+            color: var(--brand);
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+        
+        .category {
+            display: inline-block;
+            background: #1e293b;
+            color: #93c5fd;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .answer {
+            color: var(--text);
+            margin-bottom: 15px;
+            line-height: 1.8;
+        }
+        
+        .question-form {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 25px;
+            margin: 40px 0 20px 0;
+            animation: fadeIn 1s ease;
+        }
+        
+        .question-form h3 {
+            color: var(--brand);
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.5em;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text);
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--brand);
+        }
+        
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .contact-options {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .contact-option {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .contact-option.selected {
+            border-color: var(--brand);
+            background: rgba(96, 165, 250, 0.1);
+        }
+        
+        .contact-option i {
+            font-size: 24px;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .contact-input {
+            display: none;
+        }
+        
+        .contact-input.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .notification {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .notification.warning {
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid var(--warning);
+            color: var(--warning);
+        }
+        
+        .notification.success {
+            background: rgba(74, 222, 128, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+        
+        .submit-btn {
+            background: var(--brand);
+            color: #0b1220;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 16px;
+            flex: 1;
+            transition: opacity 0.2s;
+        }
+        
+        .cancel-btn {
+            background: transparent;
+            color: var(--muted);
+            border: 1px solid var(--border);
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            flex: 1;
+            transition: all 0.2s;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 14px;
+        }
+        
+        .submit-btn:hover {
+            opacity: 0.9;
+        }
+        
+        .cancel-btn:hover {
+            color: var(--text);
+            border-color: #334155;
+        }
+
+        #google_translate_element {
+            display: none !important;
+        }
+
+        .goog-te-banner-frame {
+            display: none !important;
+        }
+
+        .skiptranslate {
+            display: none !important;
+        }
+
+        body {
+            top: 0px !important;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: var(--brand);
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: var(--muted);
+        }
+
+        .no-results-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .faq-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .category-filter {
+                justify-content: space-between;
+            }
+            
+            .home-btn {
+                position: static;
+                transform: none;
+                margin-bottom: 15px;
+                display: inline-block;
+            }
+            
+            .contact-options {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <a href="#" class="home-btn" onclick="goToHome(); return false;">🏠 首页</a>
+            <h1>✝️ 福音常见问题</h1>
+        </div>
+        <p class="subtitle">探索信仰 · 寻求真理 · 认识基督</p>
+        
+        <div class="bible-verse">
+            <p>"你们祈求，就给你们；寻找，就寻见；叩门，就给你们开门。"</p>
+            <cite>— 马太福音 7:7</cite>
+        </div>
+        
+        <div class="language-section">
+            <div class="language-selector">
+                <span class="language-icon">🌐</span>
+                <select id="languageSelect" onchange="changeLanguage(this.value)">
+                    <option value="zh-CN">中文</option>
+                    <option value="en">English</option>
+                    <option value="es">Español</option>
+                    <option value="fr">Français</option>
+                    <option value="de">Deutsch</option>
+                    <option value="pt">Português</option>
+                    <option value="ru">Русский</option>
+                    <option value="ja">日本語</option>
+                    <option value="ko">한국어</option>
+                    <option value="ar">العربية</option>
+                    <option value="hi">हिन्दी</option>
+                    <option value="vi">Tiếng Việt</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="google_translate_element"></div>
+    </header>
+
+    <main>
+        <section class="latest-faqs">
+            <div class="faq-controls">
+                <h2>常见问题</h2>
+                <div class="category-filter">
+                    <label for="categoryFilter">分类筛选：</label>
+                    <select id="categoryFilter">
+                        <option value="all">全部分类</option>
+                        <option value="基本信仰">基本信仰</option>
+                        <option value="圣经真理">圣经真理</option>
+                        <option value="救恩之道">救恩之道</option>
+                        <option value="基督生平">基督生平</option>
+                        <option value="灵命成长">灵命成长</option>
+                        <option value="祷告生活">祷告生活</option>
+                        <option value="疑难解答">疑难解答</option>
+                        <option value="教会生活">教会生活</option>
+                    </select>
+                </div>
+            </div>
+            <div id="faqList"></div>
+        </section>
+
+        <div class="question-form">
+            <h3>提交您的问题</h3>
+            <p style="text-align: center; color: var(--muted); margin-bottom: 20px;">
+                欢迎提出您对信仰的疑问，我们会尽快为您解答
+            </p>
+            <form id="newQuestionForm">
+                <div class="form-group">
+                    <label for="question">您的问题 *</label>
+                    <textarea id="question" name="question" required placeholder="请在此输入您的问题..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="category">问题分类</label>
+                    <select id="category" name="category">
+                        <option value="">请选择分类</option>
+                        <option value="基本信仰">基本信仰</option>
+                        <option value="圣经真理">圣经真理</option>
+                        <option value="救恩之道">救恩之道</option>
+                        <option value="基督生平">基督生平</option>
+                        <option value="灵命成长">灵命成长</option>
+                        <option value="祷告生活">祷告生活</option>
+                        <option value="疑难解答">疑难解答</option>
+                        <option value="教会生活">教会生活</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>您希望如何接收回复？</label>
+                    <div class="contact-options">
+                        <div class="contact-option" onclick="selectContactOption('email')">
+                            <i>📧</i>
+                            <div>电子邮件</div>
+                        </div>
+                        <div class="contact-option" onclick="selectContactOption('phone')">
+                            <i>📱</i>
+                            <div>手机短信</div>
+                        </div>
+                        <div class="contact-option" onclick="selectContactOption('none')">
+                            <i>🔍</i>
+                            <div>稍后查看</div>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-input" id="emailInput">
+                        <label for="email">电子邮件地址 *</label>
+                        <input type="email" id="email" name="email" placeholder="your@email.com">
+                    </div>
+                    
+                    <div class="contact-input" id="phoneInput">
+                        <label for="phone">手机号码 *</label>
+                        <input type="tel" id="phone" name="phone" placeholder="+86 138 0000 0000">
+                    </div>
+                    
+                    <div class="notification warning" id="checkLaterWarning" style="display: none;">
+                        <strong>⚠️ 提示：</strong> 如果您不提供联系方式，请在24小时后回来查看您的问题是否已被回答。
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="submit-btn" id="submitBtn">
+                        <span id="submitText">提交问题</span>
+                    </button>
+                    <button type="button" class="cancel-btn" onclick="resetForm()">清空表单</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <footer>
+        <p>© 2024 福音常见问题 | 愿神赐福与您</p>
+        <p style="margin-top: 10px; font-size: 12px;">"认识你独一的真神，并且认识你所差来的耶稣基督，这就是永生。" — 约翰福音 17:3</p>
+    </footer>
+
+    <script>
+        // 常见问题数据
+        const faqData = [
+            {
+                id: 1,
+                question: "什么是福音？",
+                answer: "福音的意思是'好消息'。福音的核心信息是：神爱世人，甚至将祂的独生子赐给我们，叫一切信祂的，不至灭亡，反得永生（约翰福音3:16）。这好消息包括：1) 人因罪与神隔绝；2) 耶稣基督为我们的罪死在十字架上；3) 祂从死里复活，战胜了死亡；4) 凡信靠祂的人都能得救，获得永生。",
+                category: "基本信仰",
+                date: "2024-01-20",
+                status: "answered"
+            },
+            {
+                id: 2,
+                question: "我如何才能得救？",
+                answer: "得救的方法很简单，却需要真诚的心：1) 承认自己是罪人，需要神的救赎；2) 相信耶稣基督是神的儿子，为你的罪死在十字架上，并且复活；3) 悔改你的罪，愿意离弃罪恶；4) 接受耶稣作你个人的救主和生命的主。你可以用祷告向神表达你的信心：'主耶稣，我承认我是个罪人，我相信你为我的罪死在十字架上，求你赦免我的罪，进入我的生命，作我的救主。阿们。'",
+                category: "救恩之道",
+                date: "2024-01-19",
+                status: "answered"
+            },
+            {
+                id: 3,
+                question: "圣经是神的话语吗？可信吗？",
+                answer: "是的，圣经是神的话语。圣经由40多位作者在1500多年间写成，却保持惊人的一致性和连贯性，这证明背后有神的引导。圣经的预言准确应验，考古发现不断印证圣经的真实性。最重要的是，圣经改变了无数人的生命。提摩太后书3:16说：'圣经都是神所默示的，于教训、督责、使人归正、教导人学义都是有益的。'",
+                category: "圣经真理",
+                date: "2024-01-18",
+                status: "answered"
+            },
+            {
+                id: 4,
+                question: "神为什么允许苦难存在？",
+                answer: "这是一个深刻的问题。苦难的存在与人的自由意志有关——神创造人时赋予了选择的自由，而罪恶进入世界是因为人选择背离神。神不是苦难的创造者，但祂允许苦难存在，并能使用苦难来塑造我们的品格，使我们更依靠祂。重要的是，神没有袖手旁观——祂亲自来到世上，在耶稣基督里经历了人间的苦难，并应许将来会除去一切的痛苦和眼泪（启示录21:4）。",
+                category: "疑难解答",
+                date: "2024-01-17",
+                status: "answered"
+            },
+            {
+                id: 5,
+                question: "如何开始祷告？",
+                answer: "祷告就是与神对话。不需要特别的词汇或形式，神看重的是你真诚的心。你可以这样开始：1) 称呼神（如'天父'、'主耶稣'）；2) 赞美和感谢神；3) 承认你的罪，寻求饶恕；4) 为自己和他人的需要祈求；5) 以'奉耶稣的名祷告，阿们'结束。记住，祷告不是对着天花板说话，而是与爱你的天父倾心交谈。开始时可以简短，重要的是保持每天的祷告习惯。",
+                category: "祷告生活",
+                date: "2024-01-16",
+                status: "answered"
+            },
+            {
+                id: 6,
+                question: "耶稣真的从死里复活了吗？",
+                answer: "是的，耶稣的复活是基督教信仰的核心，也有充分的历史证据支持：1) 空坟墓——没有人能解释尸体去了哪里；2) 多次显现——超过500人见证了复活的耶稣（哥林多前书15:6）；3) 门徒的转变——原本害怕躲藏的门徒变得勇敢无畏，甚至为信仰殉道；4) 教会的诞生和发展；5) 历史记载的一致性。如果复活不是真的，基督教在最初就会被驳倒，但事实是它改变了整个世界。",
+                category: "基督生平",
+                date: "2024-01-15",
+                status: "answered"
+            },
+            {
+                id: 7,
+                question: "如何读懂圣经？",
+                answer: "读圣经的几个建议：1) 祷告求圣灵引导；2) 选择合适的译本（如和合本、新译本）；3) 从新约的福音书开始（推荐约翰福音）；4) 每天坚持阅读，哪怕只有15分钟；5) 使用圣经注释或读经指南帮助理解；6) 思想如何应用到生活中；7) 参加查经小组，与其他信徒一起学习。记住，理解圣经是一个渐进的过程，要有耐心。",
+                category: "灵命成长",
+                date: "2024-01-14",
+                status: "answered"
+            },
+            {
+                id: 8,
+                question: "为什么需要去教会？",
+                answer: "教会不是一座建筑，而是信徒的团契。去教会的重要性：1) 敬拜神——与其他信徒一起赞美神；2) 学习真理——通过讲道和查经深入了解神的话；3) 团契交通——互相鼓励、扶持；4) 服事他人——发挥你的恩赐造就他人；5) 领受圣餐——纪念主的救恩；6) 属灵遮盖——在信仰的路上不孤单。希伯来书10:25提醒我们'不可停止聚会'。教会就像一个属灵的大家庭，我们需要彼此。",
+                category: "教会生活",
+                date: "2024-01-13",
+                status: "answered"
+            },
+            {
+                id: 9,
+                question: "什么是三位一体？",
+                answer: "三位一体是基督教的核心教义，指神是一位神，但有三个位格：圣父、圣子、圣灵。这三个位格本质相同、权能相同、荣耀相同，但各有不同的位格和工作。圣父是创造者，圣子是救赎者，圣灵是保惠师。这不是三个神，而是同一位神以三种不同的位格存在。这奥秘超越人的完全理解，但圣经多处启示这一真理（如马太福音28:19）。",
+                category: "基本信仰",
+                date: "2024-01-12",
+                status: "answered"
+            },
+            {
+                id: 10,
+                question: "如何分辨神的旨意？",
+                answer: "分辨神的旨意需要：1) 熟读圣经——神的话语是祂旨意的主要启示；2) 祷告寻求——与神建立亲密关系，求祂显明心意；3) 寻求属灵长辈的建议；4) 注意环境中的印证；5) 内心平安——圣灵会在我们心中引导；6) 顺服已知的旨意——神会向顺服的人显明更多。记住，神的旨意总是与祂的话语一致，并且是为了我们的益处。",
+                category: "灵命成长",
+                date: "2024-01-11",
+                status: "answered"
+            }
+        ];
+
+        let selectedContactOption = 'none';
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            displayFAQs('all');
+            
+            // 添加谷歌翻译脚本
+            const script = document.createElement('script');
+            script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+            document.head.appendChild(script);
+        });
+
+        // 初始化谷歌翻译
+        function googleTranslateElementInit() {
+            if (typeof google !== 'undefined' && google.translate) {
+                new google.translate.TranslateElement({
+                    pageLanguage: 'zh-CN',
+                    includedLanguages: 'zh-CN,en,es,fr,de,pt,ru,ja,ko,ar,hi,vi',
+                    layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+                }, 'google_translate_element');
+            }
+        }
+
+        // 更改语言
+        function changeLanguage(lang) {
+            if (lang === 'zh-CN') {
+                // 刷新页面以重置为中文
+                location.reload();
+            } else {
+                // 使用谷歌翻译
+                if (typeof google !== 'undefined' && google.translate) {
+                    const select = document.querySelector('.goog-te-combo');
+                    if (select) {
+                        select.value = lang;
+                        select.dispatchEvent(new Event('change'));
+                    }
+                }
+            }
+        }
+
+        // 选择联系方式
+        function selectContactOption(option) {
+            selectedContactOption = option;
+            
+            document.querySelectorAll('.contact-option').forEach(el => {
+                el.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            
+            document.getElementById('emailInput').classList.remove('active');
+            document.getElementById('phoneInput').classList.remove('active');
+            document.getElementById('checkLaterWarning').style.display = 'none';
+            
+            if (option === 'email') {
+                document.getElementById('emailInput').classList.add('active');
+            } else if (option === 'phone') {
+                document.getElementById('phoneInput').classList.add('active');
+            } else {
+                document.getElementById('checkLaterWarning').style.display = 'block';
+            }
+        }
+
+        // 表单提交处理
+        document.getElementById('newQuestionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const question = formData.get('question');
+            const category = formData.get('category') || '基本信仰';
+            const email = formData.get('email');
+            const phone = formData.get('phone');
+            
+            if (!question.trim()) {
+                alert('请输入您的问题！');
+                return;
+            }
+            
+            if ((selectedContactOption === 'email' && !email) || 
+                (selectedContactOption === 'phone' && !phone)) {
+                alert('请提供您的联系方式！');
+                return;
+            }
+            
+            // 显示加载状态
+            const submitBtn = document.getElementById('submitBtn');
+            const submitText = document.getElementById('submitText');
+            submitText.innerHTML = '<span class="loading"></span>提交中...';
+            submitBtn.disabled = true;
+            
+            // 模拟提交过程
+            setTimeout(function() {
+                let contactInfo = '';
+                if (selectedContactOption === 'email' && email) {
+                    contactInfo = `邮箱：${email}`;
+                } else if (selectedContactOption === 'phone' && phone) {
+                    contactInfo = `电话：${phone}`;
+                }
+                
+                const adminEmail = 'gospel@example.com';
+                const subject = encodeURIComponent(`新的福音问题：${category}`);
+                const body = encodeURIComponent(
+                    `收到一个新的福音问题：\n\n` +
+                    `问题：${question}\n\n` +
+                    `分类：${category}\n\n` +
+                    `联系方式：${contactInfo || '用户将稍后查看'}\n\n` +
+                    `提交时间：${new Date().toLocaleString()}\n\n` +
+                    `请回复此问题，如果合适，可以考虑添加到常见问题列表中。`
+                );
+                
+                const mailtoLink = `mailto:${adminEmail}?subject=${subject}&body=${body}`;
+                window.open(mailtoLink, '_blank');
+                
+                // 恢复按钮状态
+                submitText.textContent = '提交问题';
+                submitBtn.disabled = false;
+                
+                if (contactInfo) {
+                    alert('感谢您的提问！我们会在24小时内将答案发送到您提供的联系方式。愿神赐福与您！');
+                } else {
+                    alert('感谢您的提问！请在24小时后回来查看您的问题是否已被回答。愿神赐福与您！');
+                }
+                
+                resetForm();
+            }, 1500);
+        });
+
+        // 重置表单
+        function resetForm() {
+            document.getElementById('newQuestionForm').reset();
+            selectedContactOption = 'none';
+            document.querySelectorAll('.contact-option').forEach(el => {
+                el.classList.remove('selected');
+            });
+            document.getElementById('emailInput').classList.remove('active');
+            document.getElementById('phoneInput').classList.remove('active');
+            document.getElementById('checkLaterWarning').style.display = 'none';
+        }
+
+        // 显示常见问题
+        function displayFAQs(category = 'all') {
+            const faqList = document.getElementById('faqList');
+            
+            let filteredFAQs;
+            if (category === 'all') {
+                filteredFAQs = [...faqData].sort((a, b) => new Date(b.date) - new Date(a.date));
+            } else {
+                filteredFAQs = faqData
+                    .filter(faq => faq.category === category)
+                    .sort((a, b) => new Date(b.date) - new Date(a.date));
+            }
+            
+            if (filteredFAQs.length === 0) {
+                faqList.innerHTML = `
+                    <div class="no-results">
+                        <div class="no-results-icon">❓</div>
+                        <h3>此分类暂无问题</h3>
+                        <p>欢迎提交您的第一个问题！</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            faqList.innerHTML = filteredFAQs.map(faq => `
+                <div class="faq-item ${faq.status === 'answered' ? 'answered' : 'pending'}">
+                    <span class="category">${faq.category}</span>
+                    <h3>${faq.question}</h3>
+                    <div class="answer">${faq.answer}</div>
+                    <small style="color: var(--muted);">添加时间：${faq.date}</small>
+                </div>
+            `).join('');
+        }
+
+        // 返回首页
+        function goToHome() {
+            document.getElementById('categoryFilter').value = 'all';
+            displayFAQs('all');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 事件监听
+        document.getElementById('categoryFilter').addEventListener('change', function(e) {
+            displayFAQs(e.target.value);
+        });
+    </script>
+</body>
+</html>
