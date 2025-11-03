@@ -281,7 +281,7 @@ async function loadIssues() {
     try {
         console.log('开始加载GitHub Issues...');
         
-        const repoOwner = 'kombinoxx-cell';
+        const repoOwner = 'konbinoxx-cell';
         const repoName = 'gospelfaq';
         const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/issues?state=open&per_page=100`;
         
@@ -319,7 +319,7 @@ async function loadIssues() {
                 错误: ${error.message}<br>
                 <small>这可能是由于GitHub API限制或网络问题</small>
                 <br><br>
-                <a href="https://github.com/kombinoxx-cell/gospelfaq/issues" 
+                <a href="https://github.com/konbinoxx-cell/gospelfaq/issues" 
                    target="_blank" style="color: var(--brand); text-decoration: underline;">
                    直接访问GitHub Issues
                 </a>
@@ -348,7 +348,7 @@ function displayIssues() {
             <div class="notification">
                 📝 暂无待回答问题
                 <br><br>
-                <a href="https://github.com/kombinoxx-cell/gospelfaq/issues/new" 
+                <a href="https://github.com/konbinoxx-cell/gospelfaq/issues/new" 
                    target="_blank" style="color: var(--brand);">
                    创建第一个问题
                 </a>
