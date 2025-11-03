@@ -184,6 +184,29 @@
             color: var(--text);
             border-color: var(--brand);
         }
+        .loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,.3);
+    border-radius: 50%;
+    border-top-color: var(--brand);
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.github-issue-link {
+    display: inline-block;
+    background: var(--brand);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    margin-top: 10px;
+}
     </style>
 </head>
 <body>
@@ -281,13 +304,34 @@ async function loadIssues() {
     try {
         console.log('开始加载GitHub Issues...');
         
-        const repoOwner = 'konbinoxx-cell'; // 正确的用户名
+        // 显示加载状态
+        const questionsList = document.getElementById('questionsList');
+        questionsList.innerHTML = `
+            <div class="notification" style="text-align: center;">
+                <div style="font-size: 24px; margin-bottom: 10px;">⏳</div>
+                正在加载问题列表...
+                <br>
+                <small>从GitHub API获取数据中</small>
+                <div style="margin-top: 10px;">
+                    <div class="loading"></div>
+                </div>
+            </div>
+        `;
+        
+        const repoOwner = 'konbinoxx-cell';
         const repoName = 'gospelfaq';
         const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/issues?state=open&per_page=100`;
         
         console.log('请求URL:', apiUrl);
         
-        const response = await fetch(apiUrl);
+        // 添加超时处理
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('请求超时 (10秒)')), 10000)
+        );
+        
+        const fetchPromise = fetch(apiUrl);
+        
+        const response = await Promise.race([fetchPromise, timeoutPromise]);
         console.log('响应状态:', response.status, response.statusText);
         
         if (!response.ok) {
@@ -300,11 +344,67 @@ async function loadIssues() {
         // 确保 currentIssues 是数组
         if (Array.isArray(data)) {
             currentIssues = data.filter(issue => !issue.pull_request);
-            console.log('过滤后的问题:', currentIssues);
+            console.log('过滤后的问题数量:', currentIssues.length);
+            
+            if (currentIssues.length === 0) {
+                questionsList.innerHTML = `
+                    <div class="notification" style="text-align: center;">
+                        <div style="font-size: 24px; margin-bottom: 10px;">✅</div>
+                        暂无待回答问题
+                        <br><br>
+                        <a href="https://github.com/konbinoxx-cell/gospelfaq/issues/new" 
+                           target="_blank" class="github-issue-link">
+                           创建第一个问题
+                        </a>
+                    </div>
+                `;
+            } else {
+                displayIssues();
+            }
         } else {
-            console.warn('API返回的不是数组');
-            currentIssues = [];
+            throw new Error('API返回的数据格式不正确');
         }
+        
+    } catch (error) {
+        console.error('加载失败:', error);
+        
+        document.getElementById('questionsList').innerHTML = `
+            <div class="notification error">
+                <strong>加载失败</strong><br>
+                错误: ${error.message}<br>
+                <small>这可能是因为：<br>
+                • GitHub API限制<br>
+                • 网络连接问题<br>
+                • 仓库没有issues</small>
+                <br><br>
+                <div style="text-align: center;">
+                    <button onclick="loadIssues()" style="
+                        background: var(--brand);
+                        color: white;
+                        border: none;
+                        padding: 8px 16px;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        margin: 5px;
+                    ">🔄 重新加载</button>
+                    <a href="https://github.com/konbinoxx-cell/gospelfaq/issues" 
+                       target="_blank" style="
+                        background: var(--panel);
+                        color: var(--text);
+                        border: 1px solid var(--border);
+                        padding: 8px 16px;
+                        border-radius: 6px;
+                        text-decoration: none;
+                        margin: 5px;
+                        display: inline-block;
+                    ">📋 直接访问GitHub</a>
+                </div>
+            </div>
+        `;
+        
+        currentIssues = [];
+    }
+}
         
         displayIssues();
         
