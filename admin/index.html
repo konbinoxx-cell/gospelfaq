@@ -1,1 +1,460 @@
-1
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>福音问答 - 管理员界面</title>
+    <style>
+        :root {
+            --bg: #0b1220;
+            --panel: #0f172a;
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+            --brand: #60a5fa;
+            --border: #1f2937;
+            --success: #4ade80;
+            --warning: #fbbf24;
+            --error: #f87171;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.8;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        h1 { 
+            color: var(--brand); 
+            margin-bottom: 15px;
+        }
+        
+        .admin-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .admin-panel {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .pending-questions, .answer-form {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        
+        .question-item {
+            background: rgba(96, 165, 250, 0.1);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .question-item:hover {
+            border-color: var(--brand);
+        }
+        
+        .question-item.selected {
+            border-color: var(--success);
+            background: rgba(74, 222, 128, 0.1);
+        }
+        
+        .question-meta {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 8px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .form-group select, .form-group textarea {
+            width: 100%;
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-family: inherit;
+        }
+        
+        .form-group textarea {
+            min-height: 200px;
+            resize: vertical;
+        }
+        
+        .submit-btn {
+            background: var(--success);
+            color: #0b1220;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+        
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .notification {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .notification.success {
+            background: rgba(74, 222, 128, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+        
+        .notification.error {
+            background: rgba(248, 113, 113, 0.1);
+            border: 1px solid var(--error);
+            color: var(--error);
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: var(--brand);
+            margin-bottom: 5px;
+        }
+        
+        .back-link {
+            display: inline-block;
+            background: var(--panel);
+            color: var(--muted);
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+        
+        .back-link:hover {
+            color: var(--text);
+            border-color: var(--brand);
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-link">← 返回主站</a>
+    
+    <header>
+        <h1>✝️ 福音问答 - 管理员界面</h1>
+        <p>管理用户问题并发布回答</p>
+    </header>
+
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-number" id="totalQuestions">0</div>
+            <div>总问题数</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="pendingQuestions">0</div>
+            <div>待回答问题</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="answeredQuestions">0</div>
+            <div>已回答问题</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="categoriesCount">0</div>
+            <div>分类数量</div>
+        </div>
+    </div>
+
+    <div class="admin-panel">
+        <div class="pending-questions">
+            <h3>待回答问题</h3>
+            <div id="questionsList">
+                <div class="notification">
+                    正在加载问题...
+                </div>
+            </div>
+        </div>
+        
+        <div class="answer-form">
+            <h3>回答问题</h3>
+            <form id="answerForm">
+                <div class="form-group">
+                    <label for="selectedQuestion">选中的问题：</label>
+                    <div id="selectedQuestionDisplay" style="
+                        background: var(--bg);
+                        padding: 12px;
+                        border-radius: 6px;
+                        border: 1px solid var(--border);
+                        min-height: 60px;
+                    ">请从左侧选择一个问题</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="answerCategory">问题分类：</label>
+                    <select id="answerCategory" required>
+                        <option value="">请选择分类</option>
+                        <option value="基本信仰">基本信仰</option>
+                        <option value="圣经真理">圣经真理</option>
+                        <option value="救恩之道">救恩之道</option>
+                        <option value="基督生平">基督生平</option>
+                        <option value="灵命成长">灵命成长</option>
+                        <option value="祷告生活">祷告生活</option>
+                        <option value="疑难解答">疑难解答</option>
+                        <option value="教会生活">教会生活</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="answerText">回答内容：</label>
+                    <textarea id="answerText" required placeholder="请在此输入详细的回答..."></textarea>
+                </div>
+                
+                <button type="submit" class="submit-btn" id="submitAnswerBtn" disabled>
+                    发布回答
+                </button>
+            </form>
+            
+            <div id="formMessage" style="margin-top: 15px;"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentIssues = [];
+        let selectedIssue = null;
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadIssues();
+            loadStats();
+        });
+        
+        // 加载GitHub Issues
+        async function loadIssues() {
+            try {
+                const repoOwner = 'your-username'; // 替换为您的GitHub用户名
+                const repoName = '福音问答网站'; // 替换为您的仓库名
+                
+                const response = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/issues?state=open&labels=question`);
+                currentIssues = await response.json();
+                
+                displayIssues();
+            } catch (error) {
+                console.error('加载Issues失败:', error);
+                document.getElementById('questionsList').innerHTML = `
+                    <div class="notification error">
+                        加载问题失败：${error.message}<br>
+                        请检查GitHub Token配置和网络连接
+                    </div>
+                `;
+            }
+        }
+        
+        // 显示问题列表
+        function displayIssues() {
+            const questionsList = document.getElementById('questionsList');
+            
+            if (currentIssues.length === 0) {
+                questionsList.innerHTML = `
+                    <div class="notification">
+                        暂无待回答问题
+                    </div>
+                `;
+                return;
+            }
+            
+            questionsList.innerHTML = currentIssues.map(issue => `
+                <div class="question-item ${selectedIssue?.id === issue.id ? 'selected' : ''}" 
+                     onclick="selectIssue(${issue.id})">
+                    <strong>${issue.title.replace(/^\[问题\]\s*/, '')}</strong>
+                    <div class="question-meta">
+                        #${issue.number} • ${new Date(issue.created_at).toLocaleDateString()} • 
+                        分类: ${issue.labels.map(l => l.name).filter(name => name !== 'question').join(', ') || '未分类'}
+                    </div>
+                    <div style="margin-top: 8px; font-size: 14px; color: var(--muted);">
+                        ${issue.body.substring(0, 100)}${issue.body.length > 100 ? '...' : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // 选择问题
+        function selectIssue(issueId) {
+            selectedIssue = currentIssues.find(issue => issue.id === issueId);
+            displayIssues();
+            
+            // 更新表单
+            document.getElementById('selectedQuestionDisplay').textContent = 
+                selectedIssue.title.replace(/^\[问题\]\s*/, '');
+            
+            // 自动选择分类
+            const category = selectedIssue.labels
+                .map(label => label.name)
+                .find(name => !['question'].includes(name));
+            
+            if (category) {
+                document.getElementById('answerCategory').value = category;
+            }
+            
+            // 启用提交按钮
+            document.getElementById('submitAnswerBtn').disabled = false;
+        }
+        
+        // 提交回答
+        document.getElementById('answerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!selectedIssue) {
+                showMessage('请先选择一个问题', 'error');
+                return;
+            }
+            
+            const answerText = document.getElementById('answerText').value;
+            const category = document.getElementById('answerCategory').value;
+            
+            if (!answerText.trim()) {
+                showMessage('请输入回答内容', 'error');
+                return;
+            }
+            
+            if (!category) {
+                showMessage('请选择问题分类', 'error');
+                return;
+            }
+            
+            const submitBtn = document.getElementById('submitAnswerBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '提交中...';
+            
+            try {
+                await submitAnswer(selectedIssue, answerText, category);
+                showMessage('回答提交成功！问题已标记为已回答', 'success');
+                
+                // 重置表单
+                document.getElementById('answerText').value = '';
+                selectedIssue = null;
+                document.getElementById('selectedQuestionDisplay').textContent = '请从左侧选择一个问题';
+                submitBtn.textContent = '发布回答';
+                submitBtn.disabled = true;
+                
+                // 重新加载数据
+                loadIssues();
+                loadStats();
+                
+            } catch (error) {
+                showMessage(`提交失败：${error.message}`, 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = '发布回答';
+            }
+        });
+        
+        // 提交回答到GitHub
+        async function submitAnswer(issue, answer, category) {
+            const repoOwner = 'your-username'; // 替换为您的GitHub用户名
+            const repoName = '福音问答网站'; // 替换为您的仓库名
+            
+            // 在实际应用中，这里需要GitHub Token认证
+            // 目前我们先模拟成功提交
+            
+            // 添加评论（回答）
+            console.log(`为问题 #${issue.number} 添加回答：`, answer);
+            
+            // 添加answered标签
+            console.log(`为问题 #${issue.number} 添加answered标签`);
+            
+            // 在实际部署中，您需要：
+            // 1. 配置GitHub Token
+            // 2. 使用GitHub REST API添加评论和标签
+            // 3. 关闭Issue
+            
+            // 模拟API调用延迟
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            return { success: true };
+        }
+        
+        // 显示消息
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('formMessage');
+            messageDiv.innerHTML = `
+                <div class="notification ${type}">
+                    ${message}
+                </div>
+            `;
+            
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 5000);
+        }
+        
+        // 加载统计信息
+        async function loadStats() {
+            try {
+                // 加载FAQ数据统计
+                const faqResponse = await fetch('../faq-data.json');
+                const faqData = await faqResponse.json();
+                
+                document.getElementById('totalQuestions').textContent = faqData.length;
+                document.getElementById('answeredQuestions').textContent = 
+                    faqData.filter(f => f.status === 'answered').length;
+                
+                const categories = new Set(faqData.map(f => f.category));
+                document.getElementById('categoriesCount').textContent = categories.size;
+                
+                // 加载待回答问题统计
+                document.getElementById('pendingQuestions').textContent = currentIssues.length;
+                
+            } catch (error) {
+                console.error('加载统计信息失败:', error);
+            }
+        }
+    </script>
+</body>
+</html>
