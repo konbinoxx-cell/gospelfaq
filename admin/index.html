@@ -184,29 +184,52 @@
             color: var(--text);
             border-color: var(--brand);
         }
+
         .loading {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 3px solid rgba(255,255,255,.3);
-    border-radius: 50%;
-    border-top-color: var(--brand);
-    animation: spin 1s ease-in-out infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-.github-issue-link {
-    display: inline-block;
-    background: var(--brand);
-    color: white;
-    padding: 8px 16px;
-    border-radius: 6px;
-    text-decoration: none;
-    margin-top: 10px;
-}
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: var(--brand);
+            animation: spin 1s ease-in-out infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .github-issue-link {
+            display: inline-block;
+            background: var(--brand);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            margin: 5px;
+        }
+        
+        .retry-btn {
+            background: var(--brand);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .github-link {
+            background: var(--panel);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            margin: 5px;
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
@@ -215,6 +238,7 @@
     <header>
         <h1>✝️ 福音问答 - 管理员界面</h1>
         <p>管理用户问题并发布回答</p>
+        <button onclick="loadIssues()" class="retry-btn">🔄 刷新问题</button>
     </header>
 
     <div class="stats">
@@ -241,7 +265,8 @@
             <h3>待回答问题</h3>
             <div id="questionsList">
                 <div class="notification">
-                    正在加载问题...
+                    <div class="loading"></div>
+                    <br>正在加载问题...
                 </div>
             </div>
         </div>
@@ -291,380 +316,205 @@
 
     <script>
         let currentIssues = [];
-let selectedIssue = null;
+        let selectedIssue = null;
 
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('管理员界面加载完成');
-    loadIssues();
-    loadStats();
-});
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('管理员界面初始化');
+            loadIssues();
+            loadStats();
+        });
 
-// 修复的 loadIssues 函数
-async function loadIssues() {
-    try {
-        console.log('开始加载GitHub Issues...');
-        
-        // 显示加载状态
-        const questionsList = document.getElementById('questionsList');
-        questionsList.innerHTML = `
-            <div class="notification" style="text-align: center;">
-                <div style="font-size: 24px; margin-bottom: 10px;">⏳</div>
-                正在加载问题列表...
-                <br>
-                <small>从GitHub API获取数据中</small>
-                <div style="margin-top: 10px;">
-                    <div class="loading"></div>
-                </div>
-            </div>
-        `;
-        
-        const repoOwner = 'konbinoxx-cell';
-        const repoName = 'gospelfaq';
-        const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/issues?state=open&per_page=100`;
-        
-        console.log('请求URL:', apiUrl);
-        
-        // 添加超时处理
-        const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('请求超时 (10秒)')), 10000)
-        );
-        
-        const fetchPromise = fetch(apiUrl);
-        
-        const response = await Promise.race([fetchPromise, timeoutPromise]);
-        console.log('响应状态:', response.status, response.statusText);
-        
-        if (!response.ok) {
-            throw new Error(`GitHub API返回错误: ${response.status} ${response.statusText}`);
-        }
-        
-        const data = await response.json();
-        console.log('API返回数据:', data);
-        
-        // 确保 currentIssues 是数组
-        if (Array.isArray(data)) {
-            currentIssues = data.filter(issue => !issue.pull_request);
-            console.log('过滤后的问题数量:', currentIssues.length);
+        async function loadIssues() {
+            const questionsList = document.getElementById('questionsList');
             
-            if (currentIssues.length === 0) {
+            try {
+                console.log('开始加载GitHub Issues...');
+                
                 questionsList.innerHTML = `
                     <div class="notification" style="text-align: center;">
-                        <div style="font-size: 24px; margin-bottom: 10px;">✅</div>
-                        暂无待回答问题
-                        <br><br>
-                        <a href="https://github.com/konbinoxx-cell/gospelfaq/issues/new" 
-                           target="_blank" class="github-issue-link">
-                           创建第一个问题
-                        </a>
+                        <div class="loading"></div>
+                        <br>正在从GitHub加载问题...
+                        <br><small>请稍候...</small>
                     </div>
                 `;
-            } else {
-                displayIssues();
-            }
-        } else {
-            throw new Error('API返回的数据格式不正确');
-        }
-        
-    } catch (error) {
-        console.error('加载失败:', error);
-        
-        document.getElementById('questionsList').innerHTML = `
-            <div class="notification error">
-                <strong>加载失败</strong><br>
-                错误: ${error.message}<br>
-                <small>这可能是因为：<br>
-                • GitHub API限制<br>
-                • 网络连接问题<br>
-                • 仓库没有issues</small>
-                <br><br>
-                <div style="text-align: center;">
-                    <button onclick="loadIssues()" style="
-                        background: var(--brand);
-                        color: white;
-                        border: none;
-                        padding: 8px 16px;
-                        border-radius: 6px;
-                        cursor: pointer;
-                        margin: 5px;
-                    ">🔄 重新加载</button>
-                    <a href="https://github.com/konbinoxx-cell/gospelfaq/issues" 
-                       target="_blank" style="
-                        background: var(--panel);
-                        color: var(--text);
-                        border: 1px solid var(--border);
-                        padding: 8px 16px;
-                        border-radius: 6px;
-                        text-decoration: none;
-                        margin: 5px;
-                        display: inline-block;
-                    ">📋 直接访问GitHub</a>
-                </div>
-            </div>
-        `;
-        
-        currentIssues = [];
-    }
-}
-        
-        displayIssues();
-        
-    } catch (error) {
-        console.error('加载失败:', error);
-        
-        document.getElementById('questionsList').innerHTML = `
-            <div class="notification error">
-                <strong>加载失败</strong><br>
-                错误: ${error.message}<br>
-                <small>请检查控制台查看详细日志</small>
-                <br><br>
-                <a href="https://github.com/konbinoxx-cell/gospelfaq/issues" 
-                   target="_blank" style="color: var(--brand); text-decoration: underline;">
-                   直接访问GitHub Issues
-                </a>
-            </div>
-        `;
-        
-        currentIssues = [];
-    }
-}
-        
-        displayIssues();
-        
-    } catch (error) {
-        console.error('加载失败:', error);
-        
-        // 显示详细错误信息
-        document.getElementById('questionsList').innerHTML = `
-            <div class="notification error">
-                <strong>加载失败</strong><br>
-                错误: ${error.message}<br>
-                <small>这可能是由于GitHub API限制或网络问题</small>
-                <br><br>
-                <a href="https://github.com/konbinoxx-cell/gospelfaq/issues" 
-                   target="_blank" style="color: var(--brand); text-decoration: underline;">
-                   直接访问GitHub Issues
-                </a>
-            </div>
-        `;
-        
-        // 设置为空数组避免后续错误
-        currentIssues = [];
-    }
-}
 
-// 修复的 displayIssues 函数
-function displayIssues() {
-    const questionsList = document.getElementById('questionsList');
-    
-    console.log('显示问题，currentIssues:', currentIssues);
-    
-    // 确保 currentIssues 是数组
-    if (!Array.isArray(currentIssues)) {
-        console.error('currentIssues 不是数组:', typeof currentIssues);
-        currentIssues = [];
-    }
-    
-    if (currentIssues.length === 0) {
-        questionsList.innerHTML = `
-            <div class="notification">
-                📝 暂无待回答问题
-                <br><br>
-                <a href="https://github.com/konbinoxx-cell/gospelfaq/issues/new" 
-                   target="_blank" style="color: var(--brand);">
-                   创建第一个问题
-                </a>
-            </div>
-        `;
-        return;
-    }
-    
-    // 过滤只显示有question标签的问题
-    const questionIssues = currentIssues.filter(issue => {
-        const hasQuestionLabel = issue.labels && 
-            issue.labels.some(label => label.name.toLowerCase().includes('question'));
-        return hasQuestionLabel;
-    });
-    
-    console.log('过滤后的问题:', questionIssues);
-    
-    if (questionIssues.length === 0) {
-        questionsList.innerHTML = `
-            <div class="notification">
-                ✅ 所有问题都已回答！
-                <br><br>
-                <small>或者问题缺少"question"标签</small>
-            </div>
-        `;
-        return;
-    }
-    
-    // 安全地使用 map
-    try {
-        questionsList.innerHTML = questionIssues.map(issue => {
-            const title = issue.title ? issue.title.replace(/^\[问题\]\s*/, '') : '无标题';
-            const labels = issue.labels ? issue.labels.map(l => l.name).join(', ') : '无标签';
-            const body = issue.body ? 
-                (issue.body.substring(0, 100) + (issue.body.length > 100 ? '...' : '')) : 
-                '无描述';
+                const repoOwner = 'konbinoxx-cell';
+                const repoName = 'gospelfaq';
+                const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/issues?state=open&per_page=50`;
+                
+                console.log('请求URL:', apiUrl);
+
+                const response = await fetch(apiUrl);
+                console.log('响应状态:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`GitHub API错误: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('成功获取数据:', data.length, '条');
+                
+                if (Array.isArray(data)) {
+                    currentIssues = data.filter(issue => !issue.pull_request);
+                    console.log('过滤后的问题:', currentIssues.length, '个');
+                    
+                    if (currentIssues.length === 0) {
+                        questionsList.innerHTML = `
+                            <div class="notification" style="text-align: center;">
+                                ✅ 暂无待回答问题
+                                <br><br>
+                                <a href="https://github.com/konbinoxx-cell/gospelfaq/issues/new" 
+                                   target="_blank" class="github-issue-link">
+                                   创建第一个问题
+                                </a>
+                            </div>
+                        `;
+                    } else {
+                        displayIssues();
+                    }
+                } else {
+                    throw new Error('数据格式错误');
+                }
+                
+            } catch (error) {
+                console.error('加载失败:', error);
+                
+                questionsList.innerHTML = `
+                    <div class="notification error">
+                        ❌ 加载失败: ${error.message}
+                        <br><br>
+                        <button onclick="loadIssues()" class="retry-btn">🔄 重新加载</button>
+                        <a href="https://github.com/konbinoxx-cell/gospelfaq/issues" 
+                           target="_blank" class="github-link">📋 访问GitHub</a>
+                    </div>
+                `;
+                
+                currentIssues = [];
+            }
+        }
+
+        function displayIssues() {
+            const questionsList = document.getElementById('questionsList');
             
-            return `
-                <div class="question-item ${selectedIssue?.id === issue.id ? 'selected' : ''}" 
-                     onclick="selectIssue(${issue.id})">
-                    <strong>${title}</strong>
-                    <div class="question-meta">
-                        #${issue.number} • ${new Date(issue.created_at).toLocaleDateString()} • 
-                        标签: ${labels}
+            const questionIssues = currentIssues.filter(issue => 
+                issue.labels && issue.labels.some(label => 
+                    label.name.toLowerCase().includes('question')
+                )
+            );
+            
+            if (questionIssues.length === 0) {
+                questionsList.innerHTML = `
+                    <div class="notification">
+                        ℹ️ 没有找到带"question"标签的问题
+                        <br><small>现有问题: ${currentIssues.length}个</small>
                     </div>
-                    <div style="margin-top: 8px; font-size: 14px; color: var(--muted);">
-                        ${body}
+                `;
+                return;
+            }
+            
+            questionsList.innerHTML = questionIssues.map(issue => {
+                const title = issue.title || '无标题';
+                const cleanTitle = title.replace(/^\[问题\]\s*/, '');
+                const labels = issue.labels ? issue.labels.map(l => l.name).join(', ') : '无标签';
+                const body = issue.body ? 
+                    (issue.body.substring(0, 120) + (issue.body.length > 120 ? '...' : '')) : 
+                    '无描述';
+                
+                return `
+                    <div class="question-item ${selectedIssue?.id === issue.id ? 'selected' : ''}" 
+                         onclick="selectIssue(${issue.id})">
+                        <strong>${cleanTitle}</strong>
+                        <div class="question-meta">
+                            #${issue.number} • ${new Date(issue.created_at).toLocaleDateString()} • 
+                            标签: ${labels}
+                        </div>
+                        <div style="margin-top: 8px; font-size: 14px; color: var(--muted);">
+                            ${body}
+                        </div>
+                        <div style="margin-top: 8px;">
+                            <a href="${issue.html_url}" target="_blank" style="color: var(--brand); font-size: 12px;">
+                                🔗 在GitHub中查看
+                            </a>
+                        </div>
                     </div>
-                    <div style="margin-top: 8px;">
-                        <a href="${issue.html_url}" target="_blank" style="color: var(--brand); font-size: 12px;">
-                            📋 在GitHub中查看
-                        </a>
-                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectIssue(issueId) {
+            selectedIssue = currentIssues.find(issue => issue.id === issueId);
+            displayIssues();
+            
+            document.getElementById('selectedQuestionDisplay').textContent = 
+                selectedIssue.title.replace(/^\[问题\]\s*/, '');
+            
+            const category = selectedIssue.labels?.find(label => 
+                !['question', 'answered'].includes(label.name.toLowerCase())
+            )?.name;
+            
+            if (category) {
+                document.getElementById('answerCategory').value = category;
+            }
+            
+            document.getElementById('submitAnswerBtn').disabled = false;
+        }
+
+        document.getElementById('answerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!selectedIssue) {
+                showMessage('请先选择一个问题', 'error');
+                return;
+            }
+            
+            const answerText = document.getElementById('answerText').value;
+            
+            if (!answerText.trim()) {
+                showMessage('请输入回答内容', 'error');
+                return;
+            }
+            
+            const answerUrl = `${selectedIssue.html_url}#issuecomment-new`;
+            window.open(answerUrl, '_blank');
+            
+            showMessage('已打开GitHub页面，请在那里添加回答', 'success');
+        });
+
+        async function loadStats() {
+            try {
+                const faqResponse = await fetch('../faq-data.json');
+                if (faqResponse.ok) {
+                    const faqData = await faqResponse.json();
+                    document.getElementById('totalQuestions').textContent = faqData.length;
+                    document.getElementById('answeredQuestions').textContent = 
+                        faqData.filter(f => f.status === 'answered').length;
+                    
+                    const categories = new Set(faqData.map(f => f.category));
+                    document.getElementById('categoriesCount').textContent = categories.size;
+                }
+                
+                document.getElementById('pendingQuestions').textContent = currentIssues.length;
+                
+            } catch (error) {
+                document.getElementById('totalQuestions').textContent = '0';
+                document.getElementById('answeredQuestions').textContent = '0';
+                document.getElementById('categoriesCount').textContent = '0';
+                document.getElementById('pendingQuestions').textContent = '0';
+            }
+        }
+
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('formMessage');
+            messageDiv.innerHTML = `
+                <div class="notification ${type}">
+                    ${message}
                 </div>
             `;
-        }).join('');
-    } catch (mapError) {
-        console.error('渲染问题列表时出错:', mapError);
-        questionsList.innerHTML = `
-            <div class="notification error">
-                渲染问题列表时出错: ${mapError.message}
-            </div>
-        `;
-    }
-}
-
-// 选择问题
-function selectIssue(issueId) {
-    console.log('选择问题:', issueId);
-    
-    if (!Array.isArray(currentIssues)) {
-        console.error('currentIssues 不是数组，无法选择问题');
-        return;
-    }
-    
-    selectedIssue = currentIssues.find(issue => issue.id === issueId);
-    
-    if (!selectedIssue) {
-        console.error('未找到问题:', issueId);
-        return;
-    }
-    
-    displayIssues();
-    
-    // 更新表单显示
-    const questionTitle = selectedIssue.title ? selectedIssue.title.replace(/^\[问题\]\s*/, '') : '无标题';
-    document.getElementById('selectedQuestionDisplay').textContent = questionTitle;
-    
-    // 自动选择分类
-    if (selectedIssue.labels) {
-        const category = selectedIssue.labels
-            .map(label => label.name)
-            .find(name => !['question', 'answered'].includes(name.toLowerCase()));
-        
-        if (category) {
-            document.getElementById('answerCategory').value = category;
-        }
-    }
-    
-    document.getElementById('submitAnswerBtn').disabled = false;
-}
-
-// 提交回答
-document.getElementById('answerForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    if (!selectedIssue) {
-        showMessage('请先选择一个问题', 'error');
-        return;
-    }
-    
-    const answerText = document.getElementById('answerText').value;
-    const category = document.getElementById('answerCategory').value;
-    
-    if (!answerText.trim()) {
-        showMessage('请输入回答内容', 'error');
-        return;
-    }
-    
-    // 重定向到GitHub进行回答
-    const answerUrl = `${selectedIssue.html_url}#issuecomment-new`;
-    window.open(answerUrl, '_blank');
-    
-    showMessage('已打开GitHub页面，请在那里添加回答并标记为"answered"', 'success');
-});
-
-// 加载统计信息
-async function loadStats() {
-    try {
-        // 加载FAQ数据统计
-        const faqResponse = await fetch('../faq-data.json');
-        if (faqResponse.ok) {
-            const faqData = await faqResponse.json();
             
-            document.getElementById('totalQuestions').textContent = faqData.length;
-            document.getElementById('answeredQuestions').textContent = 
-                faqData.filter(f => f.status === 'answered').length;
-            
-            const categories = new Set(faqData.map(f => f.category));
-            document.getElementById('categoriesCount').textContent = categories.size;
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 5000);
         }
-        
-        // 待回答问题统计
-        document.getElementById('pendingQuestions').textContent = 
-            Array.isArray(currentIssues) ? currentIssues.length : 0;
-        
-    } catch (error) {
-        console.error('加载统计失败:', error);
-        // 设置默认值
-        document.getElementById('totalQuestions').textContent = '0';
-        document.getElementById('answeredQuestions').textContent = '0';
-        document.getElementById('categoriesCount').textContent = '0';
-        document.getElementById('pendingQuestions').textContent = '0';
-    }
-}
-
-// 显示消息
-function showMessage(message, type) {
-    const messageDiv = document.getElementById('formMessage');
-    messageDiv.innerHTML = `
-        <div class="notification ${type}">
-            ${message}
-        </div>
-    `;
-    
-    setTimeout(() => {
-        messageDiv.innerHTML = '';
-    }, 5000);
-}
-
-// 手动刷新功能
-function refreshIssues() {
-    console.log('手动刷新问题列表');
-    loadIssues();
-    loadStats();
-}
-
-// 添加刷新按钮到页面
-document.addEventListener('DOMContentLoaded', function() {
-    const header = document.querySelector('header');
-    if (header) {
-        const refreshBtn = document.createElement('button');
-        refreshBtn.textContent = '🔄 刷新';
-        refreshBtn.style.background = 'var(--panel)';
-        refreshBtn.style.color = 'var(--text)';
-        refreshBtn.style.border = '1px solid var(--border)';
-        refreshBtn.style.padding = '8px 16px';
-        refreshBtn.style.borderRadius = '6px';
-        refreshBtn.style.cursor = 'pointer';
-        refreshBtn.style.marginLeft = '10px';
-        refreshBtn.onclick = refreshIssues;
-        
-        header.appendChild(refreshBtn);
-    }
-});
     </script>
 </body>
 </html>
