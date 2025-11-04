@@ -1,42 +1,57 @@
 name: FAQ Management
 
 on:
-  issues:
-    types: [labeled]
   issue_comment:
     types: [created]
+  issues:
+    types: [labeled]
 
 jobs:
   process-answered-question:
-    if: contains(github.event.issue.labels.*.name, 'answered') && github.event.issue.state == 'open'
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      issues: write
     
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           
+      - name: Debug info
+        run: |
+          echo "事件类型: ${{ github.event_name }}"
+          echo "Issue编号: ${{ github.event.issue.number }}"
+          echo "标签: ${{ github.event.issue.labels.*.name }}"
+          
+      - name: Check answered label
+        id: check-label
+        run: |
+          LABELS="${{ github.event.issue.labels.*.name }}"
+          if [[ "$LABELS" == *"answered"* ]]; then
+            echo "has_answered=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_answered=false" >> $GITHUB_OUTPUT
+          fi
+          
       - name: Process answered question
+        if: steps.check-label.outputs.has_answered == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # 安装依赖
-          npm install @actions/github @actions/core
-          
-          # 运行处理脚本
-          node .github/scripts/process-answer.js
+          cd .github/scripts
+          npm init -y --silent
+          npm install @actions/core @actions/github
+          node process-answer.js
           
       - name: Commit and push changes
+        if: steps.check-label.outputs.has_answered == 'true'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add faq-data.json
-          git commit -m "添加已回答问题: ${{ github.event.issue.title }}" || exit 0
+          git diff --staged --quiet || git commit -m "docs: 添加已回答问题 #${{ github.event.issue.number }}"
           git push
