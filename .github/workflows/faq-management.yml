@@ -1,14 +1,15 @@
 name: FAQ Management
 
 on:
-  issue_comment:
-    types: [created]
   issues:
-    types: [labeled]
+    types: [labeled, closed]
 
 jobs:
   process-answered-question:
     runs-on: ubuntu-latest
+    if: |
+      (contains(github.event.issue.labels.*.name, 'answered') || github.event.action == 'closed') &&
+      github.event.issue.state == 'open'
     
     steps:
       - name: Checkout repository
@@ -21,37 +22,20 @@ jobs:
         with:
           node-version: '18'
           
-      - name: Debug info
-        run: |
-          echo "事件类型: ${{ github.event_name }}"
-          echo "Issue编号: ${{ github.event.issue.number }}"
-          echo "标签: ${{ github.event.issue.labels.*.name }}"
-          
-      - name: Check answered label
-        id: check-label
-        run: |
-          LABELS="${{ github.event.issue.labels.*.name }}"
-          if [[ "$LABELS" == *"answered"* ]]; then
-            echo "has_answered=true" >> $GITHUB_OUTPUT
-          else
-            echo "has_answered=false" >> $GITHUB_OUTPUT
-          fi
-          
-      - name: Process answered question
-        if: steps.check-label.outputs.has_answered == 'true'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install dependencies
         run: |
           cd .github/scripts
           npm init -y --silent
           npm install @actions/core @actions/github
-          node process-answer.js
+          
+      - name: Process answered question
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node .github/scripts/process-answer.js
           
       - name: Commit and push changes
-        if: steps.check-label.outputs.has_answered == 'true'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add faq-data.json
-          git diff --staged --quiet || git commit -m "docs: 添加已回答问题 #${{ github.event.issue.number }}"
-          git push
+          git diff --staged --quiet || (git commit -m "docs: 添加已回答问题 #${{ github.event.issue.number }}" && git push)
