@@ -1,89 +1,101 @@
-const core = require('@actions/core');
-const github = require('@actions/github');
+// ...existing code...
 const fs = require('fs');
 const path = require('path');
+const core = require('@actions/core');
+const github = require('@actions/github');
 
-async function run() {
+async function main() {
   try {
-    console.log('🚀 开始处理GitHub Actions...');
-
     const token = process.env.GITHUB_TOKEN;
-    if (!token) throw new Error('GITHUB_TOKEN 未设置');
+    if (!token) throw new Error('GITHUB_TOKEN is required');
 
     const octokit = github.getOctokit(token);
-    const context = github.context;
-    const issue = context.payload.issue;
+    const { owner, repo } = github.context.repo;
+    const eventName = github.context.eventName;
+    const payload = github.context.payload;
+
+    // 打印当前事件类型和 issue 编号
+    const issue = payload.issue;
+    console.log(`Event: ${eventName}`);
+    if (!issue) {
+      console.log('No issue found on the event payload. Exiting.');
+      return;
+    }
     const issueNumber = issue.number;
+    console.log(`Issue number: ${issueNumber}`);
 
-    console.log('仓库:', context.repo.owner, context.repo.repo);
-    console.log('问题编号:', issueNumber);
-    console.log('事件类型:', context.eventName);
-
-    // 获取评论
-    const { data: comments } = await octokit.rest.issues.listComments({
-      owner: context.repo.owner,
-      repo: context.repo.repo,
-      issue_number: issueNumber
+    // 使用 Octokit 获取 issue 的所有评论
+    const commentsRes = await octokit.rest.issues.listComments({
+      owner,
+      repo,
+      issue_number: issueNumber,
+      per_page: 100,
     });
 
+    const comments = commentsRes.data || [];
     if (comments.length === 0) {
-      console.log('⚠️ 没有评论，跳过处理');
+      console.warn('No comments found for this issue. Exiting.');
       return;
     }
 
+    // 获取最新评论
     const latestComment = comments[comments.length - 1];
-    const isMaintainer = latestComment.user.login === context.repo.owner;
-    if (!isMaintainer) {
-      console.log('⚠️ 最新评论不是维护者提交的，跳过处理');
+
+    // 检查最新评论是否由仓库维护者/所有者发布（允许 OWNER/MEMBER/COLLABORATOR）
+    const assoc = (latestComment.author_association || '').toUpperCase();
+    const allowed = ['OWNER', 'MEMBER', 'COLLABORATOR'];
+    if (!allowed.includes(assoc)) {
+      console.log(`Latest comment author_association="${assoc}" not in ${allowed.join(', ')}. Skipping.`);
       return;
     }
 
-    const categoryLabels = issue.labels
-      .map(label => label.name)
-      .filter(name => !['question', 'answered'].includes(name.toLowerCase()));
-    const category = categoryLabels.length > 0 ? categoryLabels[0] : '基本信仰';
+    // 构建一个新的 FAQ 条目，包含 id、question、answer、category、date 和 status 字段
+    const id = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `faq-${Date.now()}`;
+    const question = issue.title || '';
+    const answer = latestComment.body || '';
+    const category = (issue.labels && issue.labels[0] && (typeof issue.labels[0] === 'string' ? issue.labels[0] : issue.labels[0].name)) || 'uncategorized';
+    const date = new Date().toISOString();
+    const status = 'published';
 
-    const faqPath = path.join(__dirname, '..', 'data', 'faq-data.json');
-    if (!fs.existsSync(path.dirname(faqPath))) {
-      fs.mkdirSync(path.dirname(faqPath));
-    }
+    const newEntry = { id, question, answer, category, date, status };
 
+    // 检查根目录是否存在 faq-data.json，如果没有则创建
+    const faqPath = path.resolve(process.cwd(), 'faq-data.json');
     let faqData = [];
     if (fs.existsSync(faqPath)) {
-      const content = fs.readFileSync(faqPath, 'utf8');
-      faqData = JSON.parse(content);
+      const raw = fs.readFileSync(faqPath, 'utf8');
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) faqData = parsed;
+        else {
+          console.warn('Existing faq-data.json is not an array. Overwriting with a new array.');
+          faqData = [];
+        }
+      } catch (e) {
+        console.warn('Failed to parse existing faq-data.json. Overwriting with a new array.');
+        faqData = [];
+      }
+    } else {
+      console.log('faq-data.json not found — will create a new one.');
     }
 
-    const newFAQ = {
-      id: faqData.length > 0 ? Math.max(...faqData.map(f => f.id)) + 1 : 1,
-      question: issue.title.replace(/^
+    // 将新的条目写入数组并保存到文件，格式化为缩进为 2 的 JSON
+    faqData.push(newEntry);
+    fs.writeFileSync(faqPath, JSON.stringify(faqData, null, 2) + '\n', 'utf8');
+    console.log(`Wrote FAQ entry to ${faqPath}`);
 
-\[问题\]
-
-\s*/, ''),
-      answer: latestComment.body,
-      category: category,
-      date: new Date().toISOString().split('T')[0],
-      status: 'answered'
-    };
-
-    faqData.push(newFAQ);
-    fs.writeFileSync(faqPath, JSON.stringify(faqData, null, 2));
-    console.log('✅ FAQ数据已保存');
-
+    // 使用 Octokit 关闭当前 issue
     await octokit.rest.issues.update({
-      owner: context.repo.owner,
-      repo: context.repo.repo,
+      owner,
+      repo,
       issue_number: issueNumber,
-      state: 'closed'
+      state: 'closed',
     });
-
-    console.log('✅ 问题已关闭');
-
+    console.log(`Closed issue #${issueNumber}`);
   } catch (error) {
-    console.error('❌ 处理失败:', error);
-    core.setFailed(error.message);
+    core.setFailed(error.message || String(error));
   }
 }
 
-run();
+main();
+// ...existing code...
