@@ -34,6 +34,15 @@ async function run() {
             owner: context.repo.owner,
             repo: context.repo.repo,
             issue_number: context.issue.number
+        }
+        if (comments.length === 0) {
+            console.log('⚠️ 没有找到评论，使用默认回答');
+            // 使用默认回答或从其他地方获取答案
+            latestComment = {
+                body: '这个问题正在等待专业回答，请稍后查看更新。'
+            };
+        } else {
+            latestComment = comments[comments.length - 1];
         });
 
         console.log('评论数量:', comments.length);
