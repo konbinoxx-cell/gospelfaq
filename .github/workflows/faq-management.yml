@@ -33,9 +33,19 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node scripts/process-answer.js
           
+      # ▼▼▼ 把您的那段代码放在这里 ▼▼▼
       - name: Commit and push changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add faq-data.json
-          git diff --staged --quiet || (git commit -m "docs: 更新FAQ数据 #${{ github.event.issue.number }}" && git push)
+          
+          # 检查是否有更改
+          if git diff --staged --quiet; then
+            echo "没有更改需要提交"
+          else
+            git commit -m "docs: 更新FAQ数据 #${{ github.event.issue.number }}"
+            # 强制推送
+            git push origin HEAD:main --force
+          fi
+      # ▲▲▲ 到这里结束 ▲▲▲
