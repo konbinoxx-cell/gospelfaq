@@ -2,16 +2,35 @@ name: FAQ Management
 
 on:
   issues:
-    types: [labeled, closed]
+    types: [labeled, unlabeled]  # 添加 unlabeled 以捕获更多事件
+  workflow_dispatch:  # 添加手动触发用于测试
 
 jobs:
   process-answered-question:
     runs-on: ubuntu-latest
     if: |
-      (contains(github.event.issue.labels.*.name, 'answered') || github.event.action == 'closed') &&
+      contains(github.event.issue.labels.*.name, 'answered') &&
       github.event.issue.state == 'open'
     
     steps:
+      - name: Debug Event Data
+        run: |
+          echo "🎯 事件类型: ${{ github.event_name }}"
+          echo "🔄 动作类型: ${{ github.event.action }}"
+          echo "📝 Issue 编号: ${{ github.event.issue.number }}"
+          echo "🏷️ 标签列表: ${{ toJson(github.event.issue.labels) }}"
+          echo "📊 Issue 状态: ${{ github.event.issue.state }}"
+          
+      - name: Check if answered label exists
+        run: |
+          LABELS='${{ toJson(github.event.issue.labels) }}'
+          echo "原始标签数据: $LABELS"
+          if echo "$LABELS" | grep -q '"name":"answered"'; then
+            echo "✅ answered 标签存在"
+          else
+            echo "❌ answered 标签不存在"
+          fi
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -24,18 +43,18 @@ jobs:
           
       - name: Install dependencies
         run: |
-          cd .github/scripts
           npm init -y --silent
           npm install @actions/core @actions/github
+        working-directory: ./scripts
           
       - name: Process answered question
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node .github/scripts/process-answer.js
+        run: node scripts/process-answer.js
           
       - name: Commit and push changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add faq-data.json
-          git diff --staged --quiet || (git commit -m "docs: 添加已回答问题 #${{ github.event.issue.number }}" && git push)
+          git add .
+          git diff --staged --quiet || (git commit -m "docs: 更新FAQ数据 #${{ github.event.issue.number }}" && git push)
