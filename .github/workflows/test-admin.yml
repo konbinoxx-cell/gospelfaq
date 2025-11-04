@@ -1,0 +1,25 @@
+# .github/workflows/test-admin.yml
+name: Test Admin Function
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'Issue Number'
+        required: true
+        type: string
+
+jobs:
+  test-admin:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Test Process
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TEST_ISSUE_NUMBER: ${{ inputs.issue_number }}
+        run: |
+          echo "测试处理 Issue #$TEST_ISSUE_NUMBER"
+          # 这里可以调用您的处理脚本
