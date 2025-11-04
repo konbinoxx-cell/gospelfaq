@@ -8,21 +8,11 @@ on:
 jobs:
   process-answered-question:
     runs-on: ubuntu-latest
-    # 修复条件判断
     if: |
       (github.event.action == 'labeled' && contains(github.event.label.name, 'answered')) ||
       github.event_name == 'workflow_dispatch'
     
     steps:
-      - name: Debug Event Info
-        run: |
-          echo "🎯 GitHub Event: ${{ github.event_name }}"
-          echo "🔄 Action: ${{ github.event.action }}"
-          echo "🏷️ Label Added: ${{ github.event.label.name }}"
-          echo "📝 Issue Number: ${{ github.event.issue.number }}"
-          echo "🔓 Issue State: ${{ github.event.issue.state }}"
-          echo "📋 All Labels: ${{ toJson(github.event.issue.labels.*.name) }}"
-
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -37,7 +27,6 @@ jobs:
         run: |
           npm init -y --silent
           npm install @actions/core @actions/github
-        working-directory: ./scripts
           
       - name: Process answered question
         env:
@@ -48,5 +37,5 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add .
+          git add faq-data.json
           git diff --staged --quiet || (git commit -m "docs: 更新FAQ数据 #${{ github.event.issue.number }}" && git push)
