@@ -2,34 +2,26 @@ name: FAQ Management
 
 on:
   issues:
-    types: [labeled, unlabeled]  # 添加 unlabeled 以捕获更多事件
-  workflow_dispatch:  # 添加手动触发用于测试
+    types: [labeled]
+  workflow_dispatch:
 
 jobs:
   process-answered-question:
     runs-on: ubuntu-latest
+    # 修复条件判断
     if: |
-      contains(github.event.issue.labels.*.name, 'answered') &&
-      github.event.issue.state == 'open'
+      (github.event.action == 'labeled' && contains(github.event.label.name, 'answered')) ||
+      github.event_name == 'workflow_dispatch'
     
     steps:
-      - name: Debug Event Data
+      - name: Debug Event Info
         run: |
-          echo "🎯 事件类型: ${{ github.event_name }}"
-          echo "🔄 动作类型: ${{ github.event.action }}"
-          echo "📝 Issue 编号: ${{ github.event.issue.number }}"
-          echo "🏷️ 标签列表: ${{ toJson(github.event.issue.labels) }}"
-          echo "📊 Issue 状态: ${{ github.event.issue.state }}"
-          
-      - name: Check if answered label exists
-        run: |
-          LABELS='${{ toJson(github.event.issue.labels) }}'
-          echo "原始标签数据: $LABELS"
-          if echo "$LABELS" | grep -q '"name":"answered"'; then
-            echo "✅ answered 标签存在"
-          else
-            echo "❌ answered 标签不存在"
-          fi
+          echo "🎯 GitHub Event: ${{ github.event_name }}"
+          echo "🔄 Action: ${{ github.event.action }}"
+          echo "🏷️ Label Added: ${{ github.event.label.name }}"
+          echo "📝 Issue Number: ${{ github.event.issue.number }}"
+          echo "🔓 Issue State: ${{ github.event.issue.state }}"
+          echo "📋 All Labels: ${{ toJson(github.event.issue.labels.*.name) }}"
 
       - name: Checkout repository
         uses: actions/checkout@v4
