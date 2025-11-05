@@ -60,7 +60,9 @@ async function main() {
     const newEntry = { id, question, answer, category, date, status };
 
     // 检查根目录是否存在 faq-data.json，如果没有则创建
-    const faqPath = path.resolve(process.cwd(), 'faq-data.json');
+    const faqPath = path.join(__dirname, '../../faq-data.json');
+    console.log('Script directory:', __dirname);
+    console.log('Target FAQ file path:', faqPath);
     let faqData = [];
     if (fs.existsSync(faqPath)) {
       const raw = fs.readFileSync(faqPath, 'utf8');
